@@ -58,29 +58,21 @@ struct HostDevice {
 
 int main(int argc, char* argv[]) {
     using namespace std;
-    //vector<float> a(N, 1.0f);
-    vector<float> b(N, 2.0f);
-    vector<float> out(N, 0.0f);
-    float* a = reinterpret_cast<float*>( malloc( sizeof(float) * N ) );
 
-    float* dev_a;
-    float* dev_b;
-    float* dev_out;
+    HostDevice a(N);
+    HostDevice b(N);
+    HostDevice out(N);
 
-    cudaMalloc(&dev_a, sizeof(float) * N);
-    cudaMemcpy(dev_a, &a[0], sizeof(float)*N, ::cudaMemcpyHostToDevice);
+    a.fill(1.0f);
+    b.fill(2.0f);
 
-    cudaMalloc(&dev_b, sizeof(float) * N);
-    cudaMemcpy(dev_b, &a[0], sizeof(float)*N, ::cudaMemcpyHostToDevice);
-
-    cudaMalloc(&dev_out, sizeof(float) * N);
-    cudaMemcpy(dev_out, &a[0], sizeof(float)*N, ::cudaMemcpyHostToDevice);
+    a.copyHostToDevice();
+    b.copyHostToDevice();
 
 
-    vector_add<<<1,1>>>(&dev_out[0], &dev_a[0], &dev_b[0], N);
+    vector_add<<<1,1>>>(a.dev_, b.dev_, out.dev_, N);
 
-    cudaMemcpy(&out[0], dev_out, sizeof(float)*N, ::cudaMemcpyDeviceToHost);
-
+    out.copyDeviceToHost();
 
     return 0;
 }
