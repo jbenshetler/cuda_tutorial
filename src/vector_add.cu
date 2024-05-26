@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <vector>
 
+#include "HostDevice.hpp"
+
 constexpr int N = 1'000'000;
 
 void vector_add_cpu(float* out, float* a, float* b, int n) {
@@ -14,45 +16,6 @@ __global__ void vector_add(float* out, float* a, float* b, int n) {
         out[i] = a[i] + b[i];
     }
 }
-
-
-struct HostDevice {
-    using T = float;
-    using value_type = T;
-
-    HostDevice(int const N)
-    :
-    N_{N}
-    {
-        host_ = reinterpret_cast<T*>( malloc( bytes() ) );
-        cudaMalloc(&dev_, bytes() );
-    }
-
-    ~HostDevice() {
-        free(host_);
-        host_ = nullptr;
-        cudaFree(dev_);
-        dev_ = nullptr;
-    }
-
-    void copyHostToDevice() {
-        cudaMemcpy(dev_, host_, bytes(), cudaMemcpyHostToDevice );
-    }
-
-    void copyDeviceToHost() {
-        cudaMemcpy(host_, dev_, bytes(), cudaMemcpyDeviceToHost );
-    }
-
-    size_t bytes() const { return N_ * sizeof(value_type); }
-
-    void fill(value_type const& value) {
-        std::fill(host_, host_ + N, value);
-    }
-
-    int N_{0};
-    T* host_{nullptr};
-    T* dev_{nullptr};
-};
 
 
 
@@ -70,7 +33,7 @@ int main(int argc, char* argv[]) {
     b.copyHostToDevice();
 
 
-    vector_add<<<1,1>>>(a.dev_, b.dev_, out.dev_, N);
+    vector_add<<<1,1>>>(a.dev(), b.dev(), out.dev(), N);
 
     out.copyDeviceToHost();
 
