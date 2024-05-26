@@ -40,3 +40,6 @@ add_executable(hello src/hello.cu)
 set_property(TARGET hello 
              PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 #target_link_libraries(particle_test PRIVATE particles)
+
+add_executable(vector_add src/vector_add.cu)
+
